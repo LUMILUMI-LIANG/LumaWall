@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>LumaWall</AssemblyName>
-    <Version>0.24.0</Version>
+    <Version>0.24.1</Version>
     <ApplicationIcon>assets/LumaWall.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
