@@ -1,0 +1,9 @@
+bin/
+obj/
+dist/
+.recovery/
+.release/
+.tools/
+.vs/
+*.user
+*.log
