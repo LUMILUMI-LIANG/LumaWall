@@ -3,7 +3,7 @@ using Velopack.Sources;
 namespace LumaWall;
 partial class MainWindow
 {
-    internal const string ReleaseRepository = "https://github.com/changyi1015/LumaWall";
+    internal const string ReleaseRepository = "https://github.com/LUMILUMI-LIANG/LumaWall";
     bool checkingUpdates;
     internal async Task CheckAppUpdatesAsync()
     {

@@ -66,6 +66,8 @@ static class Program
         DarkTheme.Initialize();
         ApplicationConfiguration.Initialize();
         (string Flag, Action Run)[] tests = [
+            ("--tray-lifecycle-test", TrayLifecycleTest.Run),
+            ("--file-location-test", LibraryFileLocationTest.Run),
             ("--browser-gallery-test", BrowserGalleryTest.Run),
             ("--browser-gallery-live-test", BrowserGalleryTest.Live),
             ("--browser-gallery-download-live-test", BrowserGalleryTest.DownloadLive),

@@ -38,7 +38,7 @@ jobs:
         run: |
           dotnet build Wall.csproj -c Release
           if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
-          foreach ($test in @('--playlist-test', '--transform-test', '--contrast-test', '--batch-library-test')) {
+          foreach ($test in @('--playlist-test', '--transform-test', '--contrast-test', '--batch-library-test', '--file-location-test', '--tray-lifecycle-test')) {
             dotnet bin/Release/net8.0-windows/LumaWall.dll $test
             if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
           }

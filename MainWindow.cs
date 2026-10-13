@@ -58,7 +58,7 @@ partial class MainWindow : Form
         header.Controls.Add(TextLabel("LUMA WALL", 25, true), 0, 0);
         var subtitle = TextLabel("本地动态壁纸", 13); subtitle.ForeColor = Palette.Muted; header.Controls.Add(subtitle, 1, 0);
         header.Controls.Add(Button("＋ 导入图片 / 视频", Import), 2, 0); header.Controls.Add(Button("设置", ShowEngineSettings), 3, 0);
-        header.Controls.Add(Button("界面", ShowAppearanceSettings), 4, 0); header.Controls.Add(Button("运行状态", ShowDiagnostics), 5, 0); header.Controls.Add(Button("收起到托盘", () => Hide()), 6, 0); root.Controls.Add(header, 0, 0);
+        header.Controls.Add(Button("界面", ShowAppearanceSettings), 4, 0); header.Controls.Add(Button("运行状态", ShowDiagnostics), 5, 0); header.Controls.Add(Button("收起到托盘", HideToTray), 6, 0); root.Controls.Add(header, 0, 0);
 
         body = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, Padding = new(20, 0, 20, 14), Margin = Padding.Empty };
         body.RowStyles.Add(new(SizeType.Percent, 100));
@@ -77,11 +77,13 @@ partial class MainWindow : Form
         var filesButton = Button("文件与分类", OpenMediaManager); filesButton.Dock = DockStyle.None; filesButton.Size = new(130, 34); filesButton.Margin = new(8, 0, 0, 0);
         libraryHeader.Controls.Add(onlineButton); libraryHeader.Controls.Add(filesButton);
         libraryLayout.Controls.Add(libraryHeader, 0, 0); libraryLayout.Controls.Add(CreateLibraryFilters(), 0, 1); libraryLayout.Controls.Add(library, 0, 2); library.Margin = Padding.Empty;
-        var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, Margin = Padding.Empty };
-        footer.ColumnStyles.Add(new(SizeType.Percent, 100)); footer.ColumnStyles.Add(new(SizeType.Absolute, 110)); footer.ColumnStyles.Add(new(SizeType.Absolute, 140));
+        var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, Margin = Padding.Empty };
+        footer.ColumnStyles.Add(new(SizeType.Percent, 100)); footer.ColumnStyles.Add(new(SizeType.Absolute, 130)); footer.ColumnStyles.Add(new(SizeType.Absolute, 110)); footer.ColumnStyles.Add(new(SizeType.Absolute, 140));
         var dropHint = TextLabel("Ctrl 多选 · Shift 连选 · 双击查看大图", 9); dropHint.ForeColor = Palette.Muted; footer.Controls.Add(dropHint, 0, 0);
-        viewImageButton = Button("查看大图", OpenImageViewer); viewImageButton.Margin = new(4, 4, 4, 0); footer.Controls.Add(viewImageButton, 1, 0);
-        playlistToggle = Button("播放列表 ›", () => SetPlaylistSidebar(!settings.PlaylistSidebarVisible)); playlistToggle.Margin = new(4, 4, 0, 0); footer.Controls.Add(playlistToggle, 2, 0);
+        openFileLocationButton = Button("打开文件目录", OpenWallpaperLocation); openFileLocationButton.Margin = new(4, 4, 4, 0); footer.Controls.Add(openFileLocationButton, 1, 0);
+        tooltips.SetToolTip(openFileLocationButton, "在资源管理器中选中当前图片或视频文件");
+        viewImageButton = Button("查看大图", OpenImageViewer); viewImageButton.Margin = new(4, 4, 4, 0); footer.Controls.Add(viewImageButton, 2, 0);
+        playlistToggle = Button("播放列表 ›", () => SetPlaylistSidebar(!settings.PlaylistSidebarVisible)); playlistToggle.Margin = new(4, 4, 0, 0); footer.Controls.Add(playlistToggle, 3, 0);
         libraryLayout.Controls.Add(footer, 0, 3);
         libraryWorkspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, Margin = Padding.Empty };
         libraryWorkspace.ColumnStyles.Add(new(SizeType.Percent, 100)); libraryWorkspace.ColumnStyles.Add(new(SizeType.Absolute, 0)); libraryWorkspace.ColumnStyles.Add(new(SizeType.Absolute, 0));
@@ -149,7 +151,7 @@ partial class MainWindow : Form
         libraryButtons.Controls.Add(renameButton, 0, 0); libraryButtons.Controls.Add(deleteButton, 1, 0); AddRow(controls, libraryButtons, 38);
 
         status.Dock = DockStyle.Fill; status.UseMnemonic = false; status.TextAlign = ContentAlignment.MiddleLeft; status.Padding = new(24, 0, 0, 0); status.ForeColor = Palette.Muted; status.BackColor = Palette.Surface; status.AutoEllipsis = true; root.Controls.Add(status, 0, 2);
-        var menu = new ContextMenuStrip(); menu.Items.Add("打开壁纸库", null, (_, _) => PresentLibrary()); menu.Items.Add("暂停 / 继续当前屏幕", null, (_, _) => TogglePause()); menu.Items.Add("停止所有壁纸", null, (_, _) => { StopAllMonitors(); TrySaveSettings("停止状态未保存"); }); menu.Items.Add("检查更新", null, (_, _) => RunAsync(CheckAppUpdatesAsync)); menu.Items.Add("退出", null, (_, _) => Close());
+        var menu = new ContextMenuStrip(); menu.Items.Add("打开壁纸库", null, (_, _) => PresentLibrary()); menu.Items.Add("暂停 / 继续当前屏幕", null, (_, _) => TogglePause()); menu.Items.Add("停止所有壁纸", null, (_, _) => { StopAllMonitors(); TrySaveSettings("停止状态未保存"); }); menu.Items.Add("检查更新", null, (_, _) => RunAsync(CheckAppUpdatesAsync)); menu.Items.Add("退出", null, (_, _) => ExitApplication());
         tray = new NotifyIcon { Icon = AppIcon.Value, Text = "Luma Wall", Visible = showTray, ContextMenuStrip = menu }; tray.DoubleClick += (_, _) => PresentLibrary();
 
         library.SetItems(items); UpdateCount(); library.SelectedIndexChanged += (_, _) => { if (!updatingLibrary) { SelectWallpaper(); UpdateCount(); } };
@@ -171,7 +173,7 @@ partial class MainWindow : Form
         foreach (var number in new[] { zoomValue, horizontalValue, verticalValue }) { number.ValueChanged += (_, _) => UpdateFromNumbers(); number.Validated += (_, _) => TryFlushTransforms(); }
         ConnectSlider(zoomSlider, zoomValue); ConnectSlider(horizontalSlider, horizontalValue); ConnectSlider(verticalSlider, verticalValue);
         saveTimer.Tick += (_, _) => TryFlushTransforms();
-        FormClosing += (_, _) => { var bounds = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds; settings.WindowWidth = bounds.Width; settings.WindowHeight = bounds.Height; TryFlushTransforms(); CaptureCurrentMonitor(); TrySaveSettings("退出前设置未保存"); }; FormClosed += (_, _) => tray.Dispose();
+        FormClosing += (_, e) => HandleMainWindowClosing(e, showTray); FormClosed += (_, _) => { tray.Visible = false; tray.Dispose(); };
         VisibleChanged += (_, _) => UpdatePreviewVisibility();
         Resize += (_, _) => UpdatePreviewVisibility();
         preview.Fps = settings.Fps;
@@ -233,6 +235,7 @@ partial class MainWindow : Form
     }
     void SelectWallpaper()
     {
+        openFileLocationButton.Enabled = Selected is { Path: not null };
         viewImageButton.Enabled = Selected is { Path: not null, Kind: not "video" };
         bool selected = Selected != null; deleteButton.Enabled = applyButton.Enabled = transformArea.Enabled = selected;
         deleteButton.Text = library.SelectedItems.Count > 1 ? $"删除选中（{library.SelectedItems.Count}）" : "删除壁纸";
@@ -416,7 +419,7 @@ partial class MainWindow : Form
     {
         if (disposing && !disposed)
         {
-            disposed = true; virtualDesktopTimer.Dispose(); (virtualDesktopSource as IDisposable)?.Dispose(); lifecycleMonitor?.Dispose(); lifetime.Cancel(); TryFlushTransforms(); StopAllMonitors(false); playlistTimer.Dispose(); saveTimer.Dispose(); tooltips.Dispose(); tray.Dispose(); lifetime.Dispose();
+            disposed = true; virtualDesktopTimer.Dispose(); (virtualDesktopSource as IDisposable)?.Dispose(); lifecycleMonitor?.Dispose(); lifetime.Cancel(); TryFlushTransforms(); StopAllMonitors(false); playlistTimer.Dispose(); saveTimer.Dispose(); tooltips.Dispose(); tray.Visible = false; tray.Dispose(); lifetime.Dispose();
         }
         base.Dispose(disposing);
     }
